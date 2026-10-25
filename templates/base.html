@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Multimodal Attendance & Engagement Agent{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-dark text-light">
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-surface border-bottom border-secondary sticky-top px-3">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-primary" href="{{ url_for('views.index') }}">
+                <i class="fa-solid fa-brain-circuit fa-lg text-info"></i>
+                <span class="brand-text">SkillWallet <span class="text-white fw-light">| Multimodal Agent</span></span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'views.index' %}active{% endif %}" href="{{ url_for('views.index') }}">
+                            <i class="fa-solid fa-chart-line me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'views.monitor' %}active{% endif %}" href="{{ url_for('views.monitor') }}">
+                            <i class="fa-solid fa-video me-1 text-danger pulse"></i> Live Monitor
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'views.attendance' %}active{% endif %}" href="{{ url_for('views.attendance') }}">
+                            <i class="fa-solid fa-clipboard-user me-1 text-success"></i> Attendance
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'views.analytics' %}active{% endif %}" href="{{ url_for('views.analytics') }}">
+                            <i class="fa-solid fa-chart-pie me-1 text-warning"></i> Session Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'views.suggestions' %}active{% endif %}" href="{{ url_for('views.suggestions') }}">
+                            <i class="fa-solid fa-robot me-1 text-info"></i> AI Teaching Assistant
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'views.settings' %}active{% endif %}" href="{{ url_for('views.settings') }}">
+                            <i class="fa-solid fa-sliders me-1"></i> Settings
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="status-indicator d-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-dark border border-secondary">
+                        <span class="pulse-dot"></span>
+                        <small class="text-secondary">AI Core: <strong class="text-info">{{ 'Gemini 2.0 Flash' if config.GEMINI_API_KEY else 'Offline Heuristics' }}</strong></small>
+                    </div>
+                    <span id="liveClock" class="badge bg-secondary-subtle text-secondary px-2 py-1 font-monospace">--:--:--</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Page Content Container -->
+    <main class="container-fluid py-4 px-lg-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="footer mt-auto py-3 bg-surface border-top border-secondary text-secondary text-center">
+        <div class="container d-flex flex-wrap justify-content-between align-items-center px-4">
+            <small>© 2026 Multimodal Attendance & Engagement Agent | Privacy-Preserving Classroom Intelligence</small>
+            <small><i class="fa-brands fa-google me-1 text-info"></i> Google Cloud GenAI Capstone | SkillWallet.ai</small>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom Global JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

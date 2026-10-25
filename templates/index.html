@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Multimodal Attendance & Engagement Agent{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <!-- Hero / Welcome Banner -->
+    <div class="col-12">
+        <div class="card card-glass border-primary p-4 shadow-sm position-relative overflow-hidden">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <span class="badge bg-primary-subtle text-primary border border-primary px-3 py-1 rounded-pill mb-2">
+                        <i class="fa-solid fa-shield-halved me-1"></i> Privacy-Preserving Offline AI System
+                    </span>
+                    <h2 class="fw-bold mb-2">Multimodal Attendance & Engagement Agent</h2>
+                    <p class="text-secondary mb-3">
+                        Intelligent classroom intelligence platform combining <strong>computer vision</strong> (sustained presence face tracking, head pose estimation, movement dynamics), <strong>audio signal processing</strong> (interaction level, speech vs silence), and <strong>Google Gemini 2.0 Flash agent reasoning</strong> for automated attendance and contextual pedagogical suggestions.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('views.monitor') }}" class="btn btn-primary btn-lg px-4 shadow">
+                            <i class="fa-solid fa-play me-2"></i> Launch Live Monitor
+                        </a>
+                        <a href="{{ url_for('views.attendance') }}" class="btn btn-outline-success btn-lg px-4">
+                            <i class="fa-solid fa-clipboard-check me-2"></i> View Attendance Logs
+                        </a>
+                        <a href="{{ url_for('views.suggestions') }}" class="btn btn-outline-info btn-lg px-4">
+                            <i class="fa-solid fa-robot me-2"></i> AI Teaching Assistant
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-center mt-3 mt-lg-0">
+                    <div class="p-3 bg-dark-subtle rounded-4 border border-secondary text-start">
+                        <small class="text-uppercase text-secondary fw-bold tracking-wider">Active Core Status</small>
+                        <div class="d-flex align-items-center justify-content-between mt-2">
+                            <span>Vision Tracker:</span>
+                            <span class="badge bg-success-subtle text-success">Active (Centroid/Haar)</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between mt-1">
+                            <span>Acoustic VAD:</span>
+                            <span class="badge bg-success-subtle text-success">Active (RMS/ZCR)</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between mt-1">
+                            <span>Multimodal Fusion:</span>
+                            <span class="badge bg-info-subtle text-info">Calibrated (40:35:25)</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between mt-1">
+                            <span>Teaching Agent:</span>
+                            <span class="badge bg-primary-subtle text-primary">{{ 'Gemini 2.0 Flash' if config.GEMINI_API_KEY else 'Autonomous Heuristic' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="col-md-6 col-xl-3">
+        <div class="card card-stat bg-surface border-secondary p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-secondary small text-uppercase">Enrolled Roster</span>
+                    <h3 class="fw-bold mt-1 mb-0">{{ students|length }} Students</h3>
+                </div>
+                <div class="stat-icon bg-primary-subtle text-primary">
+                    <i class="fa-solid fa-users fa-xl"></i>
+                </div>
+            </div>
+            <div class="mt-3 text-secondary small">
+                <i class="fa-solid fa-check-circle text-success me-1"></i> Registered in local database
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card card-stat bg-surface border-secondary p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-secondary small text-uppercase">Active Session</span>
+                    <h3 class="fw-bold mt-1 mb-0">SES-ACTIVE-01</h3>
+                </div>
+                <div class="stat-icon bg-info-subtle text-info">
+                    <i class="fa-solid fa-chalkboard-user fa-xl"></i>
+                </div>
+            </div>
+            <div class="mt-3 text-secondary small">
+                <i class="fa-solid fa-circle-dot text-danger pulse me-1"></i> In progress (Live feed)
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card card-stat bg-surface border-secondary p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-secondary small text-uppercase">Engagement Index</span>
+                    <h3 class="fw-bold mt-1 mb-0 text-warning" id="dashAvgEngagement">82.4%</h3>
+                </div>
+                <div class="stat-icon bg-warning-subtle text-warning">
+                    <i class="fa-solid fa-bolt fa-xl"></i>
+                </div>
+            </div>
+            <div class="mt-3 text-secondary small">
+                <i class="fa-solid fa-arrow-trend-up text-success me-1"></i> Sustained attentive focus
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card card-stat bg-surface border-secondary p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-secondary small text-uppercase">Sustained Attendance</span>
+                    <h3 class="fw-bold mt-1 mb-0 text-success" id="dashAttendanceRate">87.5%</h3>
+                </div>
+                <div class="stat-icon bg-success-subtle text-success">
+                    <i class="fa-solid fa-user-check fa-xl"></i>
+                </div>
+            </div>
+            <div class="mt-3 text-secondary small">
+                <i class="fa-solid fa-filter text-info me-1"></i> False positives filtered
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Row: Registered Students & Technical Workflow Overview -->
+<div class="row g-4">
+    <!-- Student Roster Table -->
+    <div class="col-lg-7">
+        <div class="card bg-surface border-secondary h-100">
+            <div class="card-header bg-transparent border-secondary d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="fa-solid fa-address-book me-2 text-primary"></i> Classroom Roster</h5>
+                <a href="{{ url_for('views.attendance') }}" class="btn btn-sm btn-outline-secondary">View Full Roll Call</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-light">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Student Name</th>
+                            <th>Email</th>
+                            <th>Registration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in students %}
+                        <tr>
+                            <td class="font-monospace text-info">{{ s.student_id }}</td>
+                            <td class="fw-semibold">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-circle bg-secondary text-white">{{ s.name[0] }}</div>
+                                    <span>{{ s.name }}</span>
+                                </div>
+                            </td>
+                            <td class="text-secondary">{{ s.email }}</td>
+                            <td class="text-secondary small">{{ s.registered_at[:10] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technical Architecture & Scenarios -->
+    <div class="col-lg-5">
+        <div class="card bg-surface border-secondary h-100">
+            <div class="card-header bg-transparent border-secondary">
+                <h5 class="fw-bold mb-0"><i class="fa-solid fa-diagram-project me-2 text-info"></i> System Capabilities</h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion accordion-flush" id="scenarioAccordion">
+                    <div class="accordion-item bg-transparent border-secondary">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button bg-transparent text-light" type="button" data-bs-toggle="collapse" data-bs-target="#scen1">
+                                <i class="fa-solid fa-user-check me-2 text-success"></i> Scenario 1: Sustained Attendance
+                            </button>
+                        </h2>
+                        <div id="scen1" class="accordion-collapse collapse show" data-bs-parent="#scenarioAccordion">
+                            <div class="accordion-body text-secondary small">
+                                Tracks classroom attendees continuously across video frames. Eliminates false positives by requiring sustained presence (&ge; 15s) rather than single-frame appearances. Automatically produces timestamped entry and exit logs.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item bg-transparent border-secondary">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed bg-transparent text-light" type="button" data-bs-toggle="collapse" data-bs-target="#scen2">
+                                <i class="fa-solid fa-chart-line me-2 text-warning"></i> Scenario 2: Engagement & Dynamics
+                            </button>
+                        </h2>
+                        <div id="scen2" class="accordion-collapse collapse" data-bs-parent="#scenarioAccordion">
+                            <div class="accordion-body text-secondary small">
+                                Continuously analyzes head pose (looking forward vs notes vs distracted), movement dynamics, and audio acoustic interaction to calculate a composite Multimodal Engagement Score in real-time.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item bg-transparent border-secondary">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed bg-transparent text-light" type="button" data-bs-toggle="collapse" data-bs-target="#scen3">
+                                <i class="fa-solid fa-brain me-2 text-primary"></i> Scenario 3: AI-Driven Teaching Suggestions
+                            </button>
+                        </h2>
+                        <div id="scen3" class="accordion-collapse collapse" data-bs-parent="#scenarioAccordion">
+                            <div class="accordion-body text-secondary small">
+                                When attention drops or instructional monologue fatigue is flagged, the AI agent suggests actionable interventions (e.g. Think-Pair-Share, quick pulse polls, pacing recalibration) with optional text-to-speech audio feedback.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-3 bg-dark rounded border border-secondary text-center">
+                    <p class="small text-secondary mb-2">Ready to test the live multimodal agent?</p>
+                    <a href="{{ url_for('views.monitor') }}" class="btn btn-outline-primary btn-sm px-3">
+                        <i class="fa-solid fa-desktop me-1"></i> Open Live Classroom Monitor
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Management | Multimodal Agent{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <!-- Header with Session Switcher & Export -->
+    <div class="col-12 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="fa-solid fa-clipboard-user text-success me-2"></i>Classroom Attendance Logs</h3>
+            <p class="text-secondary small mb-0">Automated presence tracking driven by continuous video observation and sustained presence thresholding.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('api.export_attendance', session_id=selected_session) }}" class="btn btn-success btn-sm">
+                <i class="fa-solid fa-file-arrow-down me-1"></i> Export Attendance CSV
+            </a>
+            <a href="{{ url_for('views.monitor') }}" class="btn btn-outline-primary btn-sm">
+                <i class="fa-solid fa-video me-1"></i> Return to Live Feed
+            </a>
+        </div>
+    </div>
+
+    <!-- Attendance Metric Summary Cards -->
+    {% set present_count = records | selectattr('status', 'equalto', 'Present') | list | length %}
+    {% set partial_count = records | selectattr('status', 'equalto', 'Present (Partial)') | list | length %}
+    {% set tardy_count = records | selectattr('status', 'equalto', 'Tardy') | list | length %}
+    {% set left_early_count = records | selectattr('status', 'equalto', 'Left Early') | list | length %}
+    {% set absent_count = records | selectattr('status', 'equalto', 'Absent') | list | length %}
+
+    <div class="col-md-3">
+        <div class="card bg-surface border-success p-3">
+            <span class="text-secondary small text-uppercase">Full Attendance</span>
+            <h3 class="fw-bold text-success mt-1 mb-0">{{ present_count + partial_count }} Present</h3>
+            <small class="text-secondary mt-2 d-block">&ge; {{ config.MIN_SUSTAINED_SECONDS }}s sustained presence</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-surface border-warning p-3">
+            <span class="text-secondary small text-uppercase">Tardy / Late Arrival</span>
+            <h3 class="fw-bold text-warning mt-1 mb-0">{{ tardy_count }} Tardy</h3>
+            <small class="text-secondary mt-2 d-block">Arrived &gt; 25% into session</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-surface border-info p-3">
+            <span class="text-secondary small text-uppercase">Left Early</span>
+            <h3 class="fw-bold text-info mt-1 mb-0">{{ left_early_count }} Left Early</h3>
+            <small class="text-secondary mt-2 d-block">Absent during latter session half</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-surface border-secondary p-3">
+            <span class="text-secondary small text-uppercase">Absent / Transient</span>
+            <h3 class="fw-bold text-secondary mt-1 mb-0">{{ absent_count }} Absent</h3>
+            <small class="text-secondary mt-2 d-block">Below sustained threshold</small>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Records Table -->
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card bg-surface border-secondary shadow-sm">
+            <div class="card-header bg-transparent border-secondary d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h5 class="fw-bold mb-0">Attendance Roster (Session: {{ selected_session }})</h5>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="text" id="attendanceSearchInput" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Search student name or ID..." style="width: 250px;">
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0" id="attendanceTable">
+                    <thead>
+                        <tr class="text-secondary small">
+                            <th>Student ID</th>
+                            <th>Student Name</th>
+                            <th>Email</th>
+                            <th>First Seen</th>
+                            <th>Last Seen</th>
+                            <th>Sustained Presence</th>
+                            <th>Presence Ratio</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in records %}
+                        <tr>
+                            <td class="font-monospace text-info">{{ r.student_id }}</td>
+                            <td class="fw-semibold">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-circle bg-secondary text-white">{{ r.name[0] }}</div>
+                                    <span>{{ r.name }}</span>
+                                </div>
+                            </td>
+                            <td class="text-secondary small">{{ r.email }}</td>
+                            <td class="small">{{ r.first_seen[11:19] if r.first_seen else 'N/A' }}</td>
+                            <td class="small">{{ r.last_seen[11:19] if r.last_seen else 'N/A' }}</td>
+                            <td class="fw-bold">{{ "%.1f"|format(r.sustained_duration_seconds) }}s</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1 bg-dark border border-secondary" style="height: 6px;">
+                                        <div class="progress-bar bg-success" style="width: {{ (r.presence_ratio * 100)|int }}%"></div>
+                                    </div>
+                                    <small class="text-secondary">{{ (r.presence_ratio * 100)|int }}%</small>
+                                </div>
+                            </td>
+                            <td>
+                                {% if r.status in ('Present', 'Present (Partial)') %}
+                                    <span class="badge bg-success-subtle text-success border border-success"><i class="fa-solid fa-check me-1"></i> Present</span>
+                                {% elif r.status == 'Tardy' %}
+                                    <span class="badge bg-warning-subtle text-warning border border-warning"><i class="fa-solid fa-clock me-1"></i> Tardy</span>
+                                {% elif r.status == 'Left Early' %}
+                                    <span class="badge bg-info-subtle text-info border border-info"><i class="fa-solid fa-person-walking-arrow-right me-1"></i> Left Early</span>
+                                {% elif r.status == 'Pending (Transient)' %}
+                                    <span class="badge bg-primary-subtle text-primary border border-primary"><i class="fa-solid fa-spinner fa-spin me-1"></i> Pending</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary"><i class="fa-solid fa-xmark me-1"></i> Absent</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-secondary py-4">No attendance records generated yet for this session.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Live filter search for attendance table
+    document.getElementById('attendanceSearchInput').addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('#attendanceTable tbody tr');
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Session Analytics & Dynamics | Multimodal Agent{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="fa-solid fa-chart-line text-warning me-2"></i>Multimodal Engagement Analytics</h3>
+            <p class="text-secondary small mb-0">Quantitative analysis of visual attention, body dynamics, acoustic interaction, and cognitive pacing.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-dark border border-secondary px-3 py-2 text-info">
+                Active Formula: 40% Pose + 35% Movement + 25% Audio
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 1: Time Series Timeline -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card bg-surface border-secondary shadow-sm h-100">
+            <div class="card-header bg-transparent border-secondary d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="fa-solid fa-wave-square me-2 text-info"></i>Engagement Dynamics Timeline</h5>
+                <span class="small text-secondary font-monospace">Real-time Telemetry (Chronological)</span>
+            </div>
+            <div class="card-body">
+                <div style="height: 320px;">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interaction Mode Breakdown Doughnut Chart -->
+    <div class="col-lg-4">
+        <div class="card bg-surface border-secondary shadow-sm h-100">
+            <div class="card-header bg-transparent border-secondary">
+                <h5 class="fw-bold mb-0"><i class="fa-solid fa-chart-pie me-2 text-warning"></i>Interaction Modes</h5>
+            </div>
+            <div class="card-body d-flex flex-column justify-content-center">
+                <div style="height: 250px;">
+                    <canvas id="modeDoughnutChart"></canvas>
+                </div>
+                <div class="mt-3 text-center text-secondary small">
+                    Acoustic speech & interaction classification
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2: Signal Weights & Multimodal Fusion Breakdown -->
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card bg-surface border-secondary shadow-sm h-100">
+            <div class="card-header bg-transparent border-secondary">
+                <h5 class="fw-bold mb-0"><i class="fa-solid fa-layer-group me-2 text-primary"></i>Multimodal Fusion Weights</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small">Head Pose & Visual Attention (W_pose)</span>
+                        <strong class="text-info">{{ (config.WEIGHT_HEAD_POSE * 100)|int }}%</strong>
+                    </div>
+                    <div class="progress bg-dark border border-secondary" style="height: 10px;">
+                        <div class="progress-bar bg-info" style="width: {{ (config.WEIGHT_HEAD_POSE * 100)|int }}%"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small">Physical Movement & Inactivity (W_move)</span>
+                        <strong class="text-success">{{ (config.WEIGHT_MOVEMENT * 100)|int }}%</strong>
+                    </div>
+                    <div class="progress bg-dark border border-secondary" style="height: 10px;">
+                        <div class="progress-bar bg-success" style="width: {{ (config.WEIGHT_MOVEMENT * 100)|int }}%"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small">Acoustic Speech & VAD Ratio (W_audio)</span>
+                        <strong class="text-warning">{{ (config.WEIGHT_AUDIO * 100)|int }}%</strong>
+                    </div>
+                    <div class="progress bg-dark border border-secondary" style="height: 10px;">
+                        <div class="progress-bar bg-warning" style="width: {{ (config.WEIGHT_AUDIO * 100)|int }}%"></div>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-dark rounded border border-secondary mt-4">
+                    <h6 class="fw-bold text-light mb-1"><i class="fa-solid fa-calculator me-2 text-secondary"></i>Mathematical Formulation</h6>
+                    <p class="small text-secondary font-monospace mb-0">
+                        E_composite(t) = 0.40 &times; S_pose(t) + 0.35 &times; S_move(t) + 0.25 &times; S_audio(t)
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pacing & Anomaly Incident Log -->
+    <div class="col-lg-6">
+        <div class="card bg-surface border-secondary shadow-sm h-100">
+            <div class="card-header bg-transparent border-secondary">
+                <h5 class="fw-bold mb-0"><i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i>Attention Drops & Pacing Alerts</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0">
+                    <thead>
+                        <tr class="text-secondary small">
+                            <th>Incident</th>
+                            <th>Severity</th>
+                            <th>Metric Trigger</th>
+                            <th>Resolution</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i class="fa-solid fa-arrow-trend-down text-danger me-2"></i>Attention Drop</td>
+                            <td><span class="badge bg-danger-subtle text-danger">Warning</span></td>
+                            <td class="small">E &lt; 40.0% (Minute 0.6)</td>
+                            <td class="small text-secondary">AI suggested Think-Pair-Share</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa-solid fa-microphone-slash text-warning me-2"></i>Monologue Fatigue</td>
+                            <td><span class="badge bg-warning-subtle text-warning">Info</span></td>
+                            <td class="small">High speech / Low movement</td>
+                            <td class="small text-secondary">Open student Q&A prompt</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa-solid fa-bell text-info me-2"></i>Inactivity Alert</td>
+                            <td><span class="badge bg-info-subtle text-info">Notice</span></td>
+                            <td class="small">Ethan Brown (&gt;30s static)</td>
+                            <td class="small text-secondary">Concept retrieval poll</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

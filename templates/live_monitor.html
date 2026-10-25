@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Live Classroom Monitor | Multimodal Intelligence{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-3">
+    <!-- Header Controls -->
+    <div class="col-12 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+            <h3 class="fw-bold mb-1">
+                <i class="fa-solid fa-video text-danger me-2"></i>Live Classroom Multimodal Monitor
+            </h3>
+            <span class="text-secondary small">Session ID: <strong class="text-info font-monospace">{{ session_id }}</strong> | Sustained Threshold: <span class="badge bg-secondary">{{ config.MIN_SUSTAINED_SECONDS }}s</span></span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button id="toggleAudioNoticeBtn" class="btn btn-outline-info btn-sm">
+                <i class="fa-solid fa-volume-high me-1"></i> Audio Alerts: <span id="audioNoticeStatus">ON</span>
+            </button>
+            <button id="manualTipBtn" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Request AI Teaching Tip
+            </button>
+            <a href="{{ url_for('views.attendance') }}" class="btn btn-outline-success btn-sm">
+                <i class="fa-solid fa-file-csv me-1"></i> Attendance Records
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Video Feed & Live AI Suggestions -->
+    <div class="col-lg-8">
+        <!-- Live Video Stream Container -->
+        <div class="card bg-surface border-secondary overflow-hidden shadow-sm mb-4">
+            <div class="card-header bg-transparent border-secondary d-flex justify-content-between align-items-center py-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-danger text-uppercase px-2 py-1"><i class="fa-solid fa-circle text-white me-1 pulse"></i> LIVE FEED</span>
+                    <span class="small text-secondary" id="streamModeBadge">Simulated Multi-Student Classroom</span>
+                </div>
+                <div class="small text-secondary font-monospace" id="streamFps">~15 FPS | 720p</div>
+            </div>
+            <div class="position-relative text-center bg-black" style="min-height: 440px;">
+                <img id="videoFeed" src="{{ url_for('api.video_feed') }}" alt="Live Video Stream" class="img-fluid w-100 h-auto" style="max-height: 520px; object-fit: contain;">
+                <!-- Overlay Status HUD in corner -->
+                <div class="position-absolute top-0 end-0 m-3 px-3 py-1 rounded bg-dark bg-opacity-75 border border-secondary text-end">
+                    <small class="text-secondary d-block">Sustained Filter Active</small>
+                    <span class="badge bg-success-subtle text-success" id="activeTrackedCount">0 Tracked</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time AI Pedagogical Suggestion Card -->
+        <div class="card card-glass border-info shadow-sm" id="aiSuggestionBox">
+            <div class="card-header bg-transparent border-info d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0 text-info">
+                    <i class="fa-solid fa-brain me-2"></i>AI Teaching Assistant Insight
+                </h6>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-info-subtle text-info font-monospace" id="suggestionSource">Gemini 2.0 Flash</span>
+                    <button class="btn btn-sm btn-outline-light py-0 px-2" id="speakSuggestionBtn" title="Speak Suggestion">
+                        <i class="fa-solid fa-volume-high"></i> Play
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="suggestion-icon-badge bg-info-subtle text-info p-3 rounded-circle">
+                        <i class="fa-solid fa-lightbulb fa-xl"></i>
+                    </div>
+                    <div>
+                        <span class="badge bg-secondary mb-1" id="suggestionCategory">Pacing & Engagement</span>
+                        <p class="fs-6 mb-1 text-light" id="suggestionText">
+                            Classroom session initialized. Continuously observing head pose, visual attention, and audio interaction dynamics to guide instructional delivery.
+                        </p>
+                        <small class="text-secondary" id="suggestionTimestamp">Real-time telemetry monitored</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Real-Time Telemetry Gauges & Roster Presence -->
+    <div class="col-lg-4">
+        <!-- Multimodal Engagement Gauge -->
+        <div class="card bg-surface border-secondary p-3 mb-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0"><i class="fa-solid fa-bolt text-warning me-2"></i>Classroom Engagement Index</h6>
+                <span class="badge bg-success" id="engagementBadge">Attentive</span>
+            </div>
+            <div class="text-center my-3">
+                <h1 class="display-3 fw-bolder text-warning mb-0" id="compositeScoreDisplay">--%</h1>
+                <small class="text-secondary">Multimodal Fusion: Visual (75%) + Audio (25%)</small>
+            </div>
+            <div class="progress progress-tall bg-dark border border-secondary mb-3">
+                <div id="compositeProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width: 0%"></div>
+            </div>
+
+            <!-- Signal Breakdown Metrics -->
+            <div class="list-group list-group-flush small bg-transparent">
+                <div class="list-group-item bg-transparent text-secondary d-flex justify-content-between align-items-center px-0 py-2 border-secondary">
+                    <span><i class="fa-solid fa-face-smile text-info me-2"></i>Head Pose Attention:</span>
+                    <strong class="text-light" id="metricPose">--%</strong>
+                </div>
+                <div class="list-group-item bg-transparent text-secondary d-flex justify-content-between align-items-center px-0 py-2 border-secondary">
+                    <span><i class="fa-solid fa-person-walking text-primary me-2"></i>Physical Activity Level:</span>
+                    <strong class="text-light" id="metricMovement">--%</strong>
+                </div>
+                <div class="list-group-item bg-transparent text-secondary d-flex justify-content-between align-items-center px-0 py-2 border-secondary">
+                    <span><i class="fa-solid fa-microphone text-success me-2"></i>Acoustic Speech Score:</span>
+                    <strong class="text-light" id="metricAudio">--%</strong>
+                </div>
+                <div class="list-group-item bg-transparent text-secondary d-flex justify-content-between align-items-center px-0 py-2 border-secondary">
+                    <span><i class="fa-solid fa-comments text-warning me-2"></i>Classroom Mode:</span>
+                    <span class="badge bg-primary-subtle text-primary" id="metricInteractionMode">Guided Instruction</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Sustained Presence Roll Call -->
+        <div class="card bg-surface border-secondary shadow-sm">
+            <div class="card-header bg-transparent border-secondary d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0">
+                    <i class="fa-solid fa-user-clock text-success me-2"></i>Sustained Presence Status
+                </h6>
+                <small class="text-secondary font-monospace" id="sessionTimer">00:00</small>
+            </div>
+            <div class="table-responsive" style="max-height: 280px;">
+                <table class="table table-sm table-dark table-hover align-middle mb-0">
+                    <thead>
+                        <tr class="text-secondary small">
+                            <th>Student</th>
+                            <th>Status</th>
+                            <th>Seen (s)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentPresenceTbody">
+                        <tr>
+                            <td colspan="3" class="text-center text-secondary py-3">Initializing vision tracking...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/live_monitor.js') }}"></script>
+{% endblock %}

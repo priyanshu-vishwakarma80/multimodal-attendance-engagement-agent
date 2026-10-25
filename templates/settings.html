@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}System Settings | Multimodal Agent{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <h3 class="fw-bold mb-1"><i class="fa-solid fa-sliders text-secondary me-2"></i>System & Algorithm Settings</h3>
+        <p class="text-secondary small mb-0">Configure sustained presence logic, multimodal fusion weights, and Google Gemini API integration.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card bg-surface border-secondary shadow-sm">
+            <div class="card-body p-4">
+                <form id="settingsForm">
+                    <!-- Sustained Presence Settings -->
+                    <h5 class="fw-bold text-success mb-3">
+                        <i class="fa-solid fa-user-check me-2"></i>1. Sustained Presence Attendance Parameters
+                    </h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Minimum Sustained Presence (Seconds)</label>
+                            <input type="number" class="form-control bg-dark text-light border-secondary" id="minSustainedSeconds" value="{{ config.MIN_SUSTAINED_SECONDS }}" min="5" max="120">
+                            <div class="form-text text-secondary small">Threshold required before student is marked Present, eliminating passerby false positives.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Presence Ratio Threshold (%)</label>
+                            <input type="number" class="form-control bg-dark text-light border-secondary" id="presenceRatioThreshold" value="{{ (config.ATTENDANCE_PRESENCE_RATIO_THRESHOLD * 100)|int }}" min="10" max="90">
+                            <div class="form-text text-secondary small">Percentage of active session time student must be detected for full credit.</div>
+                        </div>
+                    </div>
+
+                    <hr class="border-secondary my-4">
+
+                    <!-- Multimodal Engagement Weights -->
+                    <h5 class="fw-bold text-warning mb-3">
+                        <i class="fa-solid fa-scale-balanced me-2"></i>2. Multimodal Engagement Fusion Weights
+                    </h5>
+                    <p class="small text-secondary mb-3">Weights determine the proportional contribution of each modality to the overall Classroom Engagement Score.</p>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label small text-secondary">Head Pose Weight (W_pose)</label>
+                            <input type="number" step="0.05" class="form-control bg-dark text-light border-secondary" id="weightPose" value="{{ config.WEIGHT_HEAD_POSE }}" min="0.0" max="1.0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-secondary">Movement Weight (W_move)</label>
+                            <input type="number" step="0.05" class="form-control bg-dark text-light border-secondary" id="weightMove" value="{{ config.WEIGHT_MOVEMENT }}" min="0.0" max="1.0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-secondary">Audio Speech Weight (W_audio)</label>
+                            <input type="number" step="0.05" class="form-control bg-dark text-light border-secondary" id="weightAudio" value="{{ config.WEIGHT_AUDIO }}" min="0.0" max="1.0">
+                        </div>
+                    </div>
+
+                    <hr class="border-secondary my-4">
+
+                    <!-- Google Gemini & Privacy Settings -->
+                    <h5 class="fw-bold text-info mb-3">
+                        <i class="fa-solid fa-brain me-2"></i>3. AI Service Layer & Privacy Mode
+                    </h5>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Google Gemini API Key (Optional)</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control bg-dark text-light border-secondary font-monospace" id="geminiApiKey" value="{{ config.GEMINI_API_KEY }}" placeholder="AIzaSy...">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleApiKeyVis">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-text text-secondary small">If omitted or offline, the agent operates in 100% offline mode with autonomous heuristics.</div>
+                    </div>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="privacyOfflineMode" {% if config.PRIVACY_OFFLINE_MODE %}checked{% endif %}>
+                        <label class="form-check-label text-light small" for="privacyOfflineMode">
+                            <strong>Strict Offline Privacy Mode</strong> (Ensures zero outbound telemetry, 100% local processing)
+                        </label>
+                    </div>
+
+                    <div class="mt-4 pt-2">
+                        <button type="button" class="btn btn-primary px-4" id="saveSettingsBtn">
+                            <i class="fa-solid fa-floppy-disk me-2"></i> Save Configuration
+                        </button>
+                        <span id="saveSuccessNotice" class="ms-3 text-success fw-bold small" style="display: none;">
+                            <i class="fa-solid fa-check me-1"></i> Settings saved successfully!
+                        </span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Architecture Card -->
+    <div class="col-lg-4">
+        <div class="card bg-surface border-secondary shadow-sm p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-shield-halved text-success me-2"></i>Privacy Assurance</h5>
+            <p class="text-secondary small">
+                The Multimodal Attendance & Engagement Agent is designed with a <strong>privacy-first, edge-compatible architecture</strong>:
+            </p>
+            <ul class="text-secondary small ps-3">
+                <li class="mb-2">Face detection runs strictly in-memory on local frames using CPU-efficient OpenCV cascades.</li>
+                <li class="mb-2">Raw biometric images are never persisted to external cloud endpoints.</li>
+                <li class="mb-2">Audio processing evaluates only statistical RMS/dB and zero-crossing frequencies to determine interaction levels, without transcribing or storing private conversation recordings.</li>
+                <li class="mb-2">Local SQLite database stores metadata and telemetry securely on the host device.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Toggle API Key visibility
+    document.getElementById('toggleApiKeyVis').addEventListener('click', function() {
+        const input = document.getElementById('geminiApiKey');
+        input.type = input.type === 'password' ? 'text' : 'password';
+    });
+
+    // Save Settings Handler
+    document.getElementById('saveSettingsBtn').addEventListener('click', async function() {
+        const payload = {
+            min_sustained_seconds: document.getElementById('minSustainedSeconds').value,
+            weight_head_pose: document.getElementById('weightPose').value,
+            weight_movement: document.getElementById('weightMove').value,
+            weight_audio: document.getElementById('weightAudio').value,
+            gemini_api_key: document.getElementById('geminiApiKey').value,
+            privacy_offline_mode: document.getElementById('privacyOfflineMode').checked
+        };
+
+        try {
+            const res = await fetch('/api/settings/update', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                const notice = document.getElementById('saveSuccessNotice');
+                notice.style.display = 'inline';
+                setTimeout(() => { notice.style.display = 'none'; }, 3500);
+            }
+        } catch (e) {
+            alert('Failed to save settings.');
+        }
+    });
+</script>
+{% endblock %}

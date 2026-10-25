@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}AI Teaching Assistant | Multimodal Agent{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="fa-solid fa-robot text-info me-2"></i>AI Teaching Assistant & Pedagogical Reasoning</h3>
+            <p class="text-secondary small mb-0">Context-aware interventions powered by Google Gemini 2.0 Flash with local heuristic fallback for classroom pacing and learner attention recovery.</p>
+        </div>
+        <div>
+            <span class="badge bg-dark border border-info text-info px-3 py-2">
+                <i class="fa-solid fa-brain me-1"></i> Engine: {{ 'Google Gemini 2.0 Flash' if config.GEMINI_API_KEY else 'Autonomous Heuristic Agent' }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Interactive Gemini Consultation & Quick Quiz Generator -->
+    <div class="col-lg-6">
+        <!-- Interactive Consultation Panel -->
+        <div class="card bg-surface border-secondary shadow-sm mb-4">
+            <div class="card-header bg-transparent border-secondary">
+                <h5 class="fw-bold mb-0"><i class="fa-solid fa-comments me-2 text-primary"></i>Consult AI Assistant</h5>
+            </div>
+            <div class="card-body">
+                <label for="aiQuestionInput" class="form-label small text-secondary">Ask for instructional advice, pacing recommendations, or student re-engagement strategies:</label>
+                <div class="input-group mb-3">
+                    <input type="text" id="aiQuestionInput" class="form-control bg-dark text-light border-secondary" placeholder="e.g. Students look distracted after 25 mins of lecture, what should I do?">
+                    <button class="btn btn-primary" id="askAiBtn">
+                        <i class="fa-solid fa-paper-plane me-1"></i> Ask
+                    </button>
+                </div>
+                <div id="aiAnswerBox" class="p-3 bg-dark rounded border border-secondary" style="min-height: 120px;">
+                    <div class="text-secondary small fst-italic" id="aiAnswerPlaceholder">
+                        Your AI teaching suggestions and pedagogical answers will appear here in real-time.
+                    </div>
+                    <div id="aiAnswerContent" class="text-light" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Pulse Check Quiz Generator -->
+        <div class="card bg-surface border-secondary shadow-sm">
+            <div class="card-header bg-transparent border-secondary d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="fa-solid fa-circle-question me-2 text-warning"></i>Active Learning Quick Quiz</h5>
+                <button class="btn btn-sm btn-outline-warning" id="generateQuizBtn">
+                    <i class="fa-solid fa-arrows-rotate me-1"></i> Generate 3-Question Quiz
+                </button>
+            </div>
+            <div class="card-body">
+                <p class="text-secondary small mb-2">Instantly generate a 3-question pulse check to break passive monologue and re-engage the room.</p>
+                <div id="quizDisplayArea" class="p-3 bg-dark rounded border border-secondary small text-light" style="max-height: 280px; overflow-y: auto;">
+                    <em>Click "Generate 3-Question Quiz" to produce an interactive concept check.</em>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Historical Teaching Interventions Timeline -->
+    <div class="col-lg-6">
+        <div class="card bg-surface border-secondary shadow-sm h-100">
+            <div class="card-header bg-transparent border-secondary d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="fa-solid fa-clock-rotate-left me-2 text-info"></i>Recorded Teaching Interventions</h5>
+                <button class="btn btn-sm btn-outline-info" id="refreshSuggestionsBtn">
+                    <i class="fa-solid fa-sync me-1"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="suggestionsListGroup" style="max-height: 600px; overflow-y: auto;">
+                    {% for sug in suggestions %}
+                    <div class="list-group-item bg-transparent text-light border-secondary p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge bg-{{ 'warning' if sug.severity == 'warning' else 'info' }}-subtle text-{{ 'warning' if sug.severity == 'warning' else 'info' }} border border-{{ 'warning' if sug.severity == 'warning' else 'info' }}">
+                                {{ sug.pedagogical_category }}
+                            </span>
+                            <small class="text-secondary font-monospace">{{ sug.timestamp[11:19] }}</small>
+                        </div>
+                        <p class="mb-1 fs-6">{{ sug.suggestion_text }}</p>
+                        <small class="text-secondary d-block"><i class="fa-solid fa-bullhorn text-muted me-1"></i> Trigger: {{ sug.trigger_reason }}</small>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-secondary py-5">
+                        <i class="fa-solid fa-comment-dots fa-2x mb-2 text-muted d-block"></i>
+                        No automated suggestions triggered yet. As the session progresses, suggestions will log here automatically.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Ask AI Consultation
+    document.getElementById('askAiBtn').addEventListener('click', async function() {
+        const input = document.getElementById('aiQuestionInput');
+        const question = input.value.trim();
+        if (!question) return;
+
+        const placeholder = document.getElementById('aiAnswerPlaceholder');
+        const content = document.getElementById('aiAnswerContent');
+        placeholder.style.display = 'block';
+        placeholder.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Formulating pedagogical guidance...';
+        content.style.display = 'none';
+
+        try {
+            const res = await fetch('/api/ai/ask', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({question})
+            });
+            const data = await res.json();
+            placeholder.style.display = 'none';
+            content.style.display = 'block';
+            content.innerHTML = `<div class="mb-2"><span class="badge bg-primary-subtle text-primary">${data.source}</span></div><div>${data.answer.replace(/\n/g, '<br>')}</div>`;
+        } catch (e) {
+            placeholder.innerHTML = '<span class="text-danger">Failed to connect to AI engine.</span>';
+        }
+    });
+
+    // Generate Quiz
+    document.getElementById('generateQuizBtn').addEventListener('click', async function() {
+        const area = document.getElementById('quizDisplayArea');
+        area.innerHTML = '<div class="text-center py-3"><i class="fa-solid fa-spinner fa-spin fa-lg me-2"></i> Generating concept check quiz...</div>';
+        try {
+            const res = await fetch('/api/ai/quiz', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({topic: 'Classroom Multimodal AI'})
+            });
+            const data = await res.json();
+            area.innerHTML = `<div>${data.quiz.replace(/\n/g, '<br>')}</div>`;
+        } catch (e) {
+            area.innerHTML = '<span class="text-danger">Failed to generate quiz.</span>';
+        }
+    });
+</script>
+{% endblock %}
