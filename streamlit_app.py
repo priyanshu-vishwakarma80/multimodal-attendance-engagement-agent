@@ -8,9 +8,16 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import cv2
 import time
 from datetime import datetime
+from PIL import Image, ImageDraw
+
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except Exception as e:
+    cv2 = None
+    CV2_AVAILABLE = False
 
 # =========================================================
 # Page Configuration & Metadata
@@ -297,49 +304,63 @@ with tab1:
         feed_mode = st.radio("Input Source Stream:", ["Simulated Classroom Stream", "Upload Media File", "Live Video Input"], horizontal=True)
 
         if feed_mode == "Simulated Classroom Stream":
-            # High-tech HUD synthetic classroom frame
-            frame = np.full((380, 600, 3), 18, dtype=np.uint8)
-            # Classroom projector board
-            cv2.rectangle(frame, (35, 15), (565, 65), (28, 36, 48), -1)
-            cv2.rectangle(frame, (35, 15), (565, 65), (59, 130, 246), 1)
-            cv2.putText(frame, "ADVANCED MULTIMODAL INTELLIGENCE - SECTION 402", (50, 47), cv2.FONT_HERSHEY_DUPLEX, 0.6, (220, 235, 255), 1)
+            if CV2_AVAILABLE and cv2 is not None:
+                # High-tech HUD synthetic classroom frame via OpenCV
+                frame = np.full((380, 600, 3), 18, dtype=np.uint8)
+                cv2.rectangle(frame, (35, 15), (565, 65), (28, 36, 48), -1)
+                cv2.rectangle(frame, (35, 15), (565, 65), (59, 130, 246), 1)
+                cv2.putText(frame, "ADVANCED MULTIMODAL INTELLIGENCE - SECTION 402", (50, 47), cv2.FONT_HERSHEY_DUPLEX, 0.6, (220, 235, 255), 1)
 
-            # Draw student avatars with high-tech HUD brackets
-            students_vis = [
-                ("Alex Chen", 120, 175, (46, 204, 113), "VERIFIED (93%)"),
-                ("Maya Patel", 300, 175, (46, 204, 113), "VERIFIED (90%)"),
-                ("Liam Johnson", 480, 175, (46, 204, 113), "VERIFIED (88%)"),
-                ("Sophia Garcia", 210, 285, (46, 204, 113), "VERIFIED (84%)"),
-                ("Ethan Brown", 390, 285, (46, 204, 113), "VERIFIED (72%)"),
-            ]
-            for name, cx, cy, col, badge in students_vis:
-                # Body silhouette
-                cv2.ellipse(frame, (cx, cy + 45), (42, 28), 0, 0, 360, (30, 41, 59), -1)
-                # Head
-                cv2.ellipse(frame, (cx, cy), (30, 38), 0, 0, 360, (210, 225, 240), -1)
-                # Hair
-                cv2.ellipse(frame, (cx, cy - 14), (32, 20), 0, 180, 360, (40, 45, 55), -1)
-                # HUD Corner Accents
-                w, h = 38, 48
-                cv2.rectangle(frame, (cx - w, cy - h), (cx + w, cy + h), col, 1)
-                cv2.line(frame, (cx - w, cy - h), (cx - w + 10, cy - h), col, 3)
-                cv2.line(frame, (cx - w, cy - h), (cx - w, cy - h + 10), col, 3)
-                cv2.line(frame, (cx + w, cy - h), (cx + w - 10, cy - h), col, 3)
-                cv2.line(frame, (cx + w, cy - h), (cx + w, cy - h + 10), col, 3)
+                students_vis = [
+                    ("Alex Chen", 120, 175, (46, 204, 113), "VERIFIED (93%)"),
+                    ("Maya Patel", 300, 175, (46, 204, 113), "VERIFIED (90%)"),
+                    ("Liam Johnson", 480, 175, (46, 204, 113), "VERIFIED (88%)"),
+                    ("Sophia Garcia", 210, 285, (46, 204, 113), "VERIFIED (84%)"),
+                    ("Ethan Brown", 390, 285, (46, 204, 113), "VERIFIED (72%)"),
+                ]
+                for name, cx, cy, col, badge in students_vis:
+                    cv2.ellipse(frame, (cx, cy + 45), (42, 28), 0, 0, 360, (30, 41, 59), -1)
+                    cv2.ellipse(frame, (cx, cy), (30, 38), 0, 0, 360, (210, 225, 240), -1)
+                    cv2.ellipse(frame, (cx, cy - 14), (32, 20), 0, 180, 360, (40, 45, 55), -1)
+                    w, h = 38, 48
+                    cv2.rectangle(frame, (cx - w, cy - h), (cx + w, cy + h), col, 1)
+                    cv2.line(frame, (cx - w, cy - h), (cx - w + 10, cy - h), col, 3)
+                    cv2.line(frame, (cx - w, cy - h), (cx - w, cy - h + 10), col, 3)
+                    cv2.line(frame, (cx + w, cy - h), (cx + w - 10, cy - h), col, 3)
+                    cv2.line(frame, (cx + w, cy - h), (cx + w, cy - h + 10), col, 3)
+                    cv2.rectangle(frame, (cx - w, cy - h - 18), (cx + w + 10, cy - h), (15, 23, 42), -1)
+                    cv2.putText(frame, name, (cx - w + 4, cy - h - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1)
+                    cv2.putText(frame, badge, (cx - w + 2, cy + h + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.36, col, 1)
 
-                # Name badge background
-                cv2.rectangle(frame, (cx - w, cy - h - 18), (cx + w + 10, cy - h), (15, 23, 42), -1)
-                cv2.putText(frame, name, (cx - w + 4, cy - h - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1)
-                cv2.putText(frame, badge, (cx - w + 2, cy + h + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.36, col, 1)
-
-            st.image(frame, channels="BGR", caption="Edge Vision Pipeline: Multi-Student Centroid Tracker & Sustained Timer", use_container_width=True)
+                st.image(frame, channels="BGR", caption="Edge Vision Pipeline: Multi-Student Centroid Tracker & Sustained Timer", use_container_width=True)
+            else:
+                # High-fidelity PIL pure-python fallback
+                pil_img = Image.new("RGB", (600, 380), color=(18, 24, 38))
+                draw = ImageDraw.Draw(pil_img)
+                draw.rectangle([(35, 15), (565, 65)], fill=(28, 36, 48), outline=(59, 130, 246))
+                draw.text((50, 32), "ADVANCED MULTIMODAL INTELLIGENCE - SECTION 402", fill=(220, 235, 255))
+                for name, cx, cy, col, badge in [
+                    ("Alex Chen", 120, 175, "#10b981", "VERIFIED (93%)"),
+                    ("Maya Patel", 300, 175, "#10b981", "VERIFIED (90%)"),
+                    ("Liam Johnson", 480, 175, "#10b981", "VERIFIED (88%)"),
+                    ("Sophia Garcia", 210, 285, "#10b981", "VERIFIED (84%)"),
+                    ("Ethan Brown", 390, 285, "#10b981", "VERIFIED (72%)"),
+                ]:
+                    draw.ellipse([(cx - 30, cy - 38), (cx + 30, cy + 38)], fill=(210, 225, 240), outline=(100, 116, 139))
+                    draw.rectangle([(cx - 38, cy - 48), (cx + 38, cy + 48)], outline=col, width=2)
+                    draw.text((cx - 34, cy - 64), name, fill="white")
+                    draw.text((cx - 34, cy + 54), badge, fill=col)
+                st.image(pil_img, caption="Edge Vision Pipeline: Multi-Student Centroid Tracker & Sustained Timer", use_container_width=True)
 
         elif feed_mode == "Upload Media File":
             up_file = st.file_uploader("Upload Classroom Recording or Frame:", type=["jpg", "png", "mp4"])
             if up_file is not None:
                 if up_file.name.endswith(("jpg", "png", "jpeg")):
-                    img = cv2.imdecode(np.asarray(bytearray(up_file.read()), dtype=np.uint8), 1)
-                    st.image(img, channels="BGR", use_container_width=True)
+                    try:
+                        pil_img = Image.open(up_file)
+                        st.image(pil_img, use_container_width=True)
+                    except Exception:
+                        st.error("Error reading image file.")
                 else:
                     st.video(up_file)
             else:
@@ -347,7 +368,11 @@ with tab1:
         else:
             cam = st.camera_input("Capture Classroom Session via Hardware Camera")
             if cam:
-                st.image(cv2.imdecode(np.frombuffer(cam.getvalue(), np.uint8), cv2.IMREAD_COLOR), channels="BGR", use_container_width=True)
+                try:
+                    pil_cam = Image.open(cam)
+                    st.image(pil_cam, use_container_width=True)
+                except Exception:
+                    st.warning("Camera frame received.")
 
     with col_metrics:
         # Calculate Sustained Attendance Status
