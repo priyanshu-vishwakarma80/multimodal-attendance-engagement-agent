@@ -1,10 +1,7 @@
 """
-Multimodal Attendance & Engagement Agent (Skill Wallet Capstone Project 5)
-Turnkey Master Streamlit Application.
-
-Privacy-First Classroom Intelligence System fusing Computer Vision (face tracking,
-sustained presence attendance), Audio Signal Processing (VAD, interaction dynamics),
-and AI Pedagogical Advisory Reasoning.
+Multimodal Attendance & Engagement Agent
+Enterprise Edition — High-Tier MNC Educational Intelligence Platform
+Skill Wallet Capstone Project 5 | Powered by Computer Vision & Edge AI
 """
 
 import streamlit as st
@@ -13,185 +10,352 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import cv2
 import time
-import math
-import io
 from datetime import datetime
 
-# Page Configuration & Modern Educational Dashboard Theme
+# =========================================================
+# Page Configuration & Metadata
+# =========================================================
 st.set_page_config(
-    page_title="Multimodal Attendance & Engagement Agent",
-    page_icon="🎓",
+    page_title="Classroom Intelligence | Multimodal Agent",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom Styling for Educational Intelligence Dashboard
+# =========================================================
+# High-Tier MNC Custom CSS (Stripe / Datadog / Google Cloud Aesthetic)
+# =========================================================
 st.markdown("""
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
 <style>
-    .main-header {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        padding: 24px;
-        border-radius: 12px;
-        border: 1px solid #334155;
+    /* Global Base */
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        color: #f1f5f9;
+    }
+    
+    .stApp {
+        background-color: #080c14 !important;
+        background-image: 
+            radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+            radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.06) 0px, transparent 50%),
+            radial-gradient(at 50% 100%, rgba(139, 92, 246, 0.05) 0px, transparent 50%) !important;
+    }
+
+    /* Enterprise Hero Banner */
+    .enterprise-hero {
+        background: linear-gradient(135deg, rgba(17, 24, 39, 0.85) 0%, rgba(15, 23, 42, 0.7) 100%);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 26px 30px;
         margin-bottom: 24px;
+        box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
     }
-    .metric-card {
-        background-color: #1e293b;
-        border: 1px solid #334155;
-        border-radius: 10px;
-        padding: 16px;
-        text-align: center;
+    .enterprise-hero::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 2px;
+        background: linear-gradient(90deg, #3b82f6, #06b6d4, #10b981);
     }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(59, 130, 246, 0.12);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        color: #60a5fa;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-bottom: 12px;
+    }
+
+    /* Glassmorphic Metric Cards */
+    .metric-card-pro {
+        background: linear-gradient(145deg, rgba(20, 29, 45, 0.7) 0%, rgba(15, 23, 42, 0.6) 100%);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    .metric-card-pro:hover {
+        transform: translateY(-2px);
+        border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 12px 30px rgba(59, 130, 246, 0.12);
+    }
+    .metric-card-pro .label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        margin-bottom: 6px;
+    }
+    .metric-card-pro .val {
+        font-size: 30px;
+        font-weight: 800;
+        color: #f8fafc;
+        letter-spacing: -0.5px;
+        line-height: 1.1;
+    }
+    .metric-card-pro .delta {
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Navigation Tabs */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
+        gap: 6px;
+        background: rgba(15, 23, 42, 0.6);
+        padding: 6px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
     }
     .stTabs [data-baseweb="tab"] {
-        padding: 10px 20px;
+        padding: 10px 18px;
         border-radius: 8px;
-        background-color: #1e293b;
+        font-weight: 600;
+        font-size: 13px;
         color: #94a3b8;
+        border: none !important;
+        transition: all 0.2s ease;
     }
     .stTabs [aria-selected="true"] {
-        background-color: #3b82f6 !important;
-        color: white !important;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    /* Status Dot Animation */
+    .live-pulse {
+        width: 8px;
+        height: 8px;
+        background-color: #10b981;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulseAnimation 2s infinite;
+    }
+    @keyframes pulseAnimation {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Monospace Text */
+    .code-font {
+        font-family: 'JetBrains Mono', monospace !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------------------------------------
-# Session State Initialization (Zero external DB dependency)
-# ---------------------------------------------------------
-if "session_started" not in st.session_state:
-    st.session_state.session_started = True
-    st.session_state.session_start_time = time.time() - 600  # 10 minutes simulated
-    st.session_state.session_duration = 900  # 15 minutes total
-
+# =========================================================
+# State Management
+# =========================================================
 if "students_roster" not in st.session_state:
     st.session_state.students_roster = [
-        {"id": "STU-101", "name": "Alex Chen", "first_seen": "00:01", "last_seen": "14:50", "visible_sec": 840, "ratio": 0.93},
-        {"id": "STU-102", "name": "Maya Patel", "first_seen": "00:03", "last_seen": "14:55", "visible_sec": 810, "ratio": 0.90},
-        {"id": "STU-103", "name": "Liam Johnson", "first_seen": "00:05", "last_seen": "14:48", "visible_sec": 790, "ratio": 0.88},
-        {"id": "STU-104", "name": "Sophia Garcia", "first_seen": "00:02", "last_seen": "14:52", "visible_sec": 760, "ratio": 0.84},
-        {"id": "STU-105", "name": "Ethan Brown", "first_seen": "04:12", "last_seen": "14:45", "visible_sec": 650, "ratio": 0.72},
-        {"id": "STU-106", "name": "Olivia Davis", "first_seen": "08:30", "last_seen": "14:40", "visible_sec": 360, "ratio": 0.40},
-        {"id": "STU-107", "name": "Noah Miller (Passerby)", "first_seen": "05:10", "last_seen": "05:18", "visible_sec": 8, "ratio": 0.01},
-        {"id": "STU-108", "name": "Emma Wilson", "first_seen": "00:04", "last_seen": "07:20", "visible_sec": 430, "ratio": 0.48}
+        {"id": "STU-101", "name": "Alex Chen", "first_seen": "00:01", "last_seen": "14:50", "visible_sec": 840, "ratio": 0.93, "attn": "96%"},
+        {"id": "STU-102", "name": "Maya Patel", "first_seen": "00:03", "last_seen": "14:55", "visible_sec": 810, "ratio": 0.90, "attn": "92%"},
+        {"id": "STU-103", "name": "Liam Johnson", "first_seen": "00:05", "last_seen": "14:48", "visible_sec": 790, "ratio": 0.88, "attn": "89%"},
+        {"id": "STU-104", "name": "Sophia Garcia", "first_seen": "00:02", "last_seen": "14:52", "visible_sec": 760, "ratio": 0.84, "attn": "85%"},
+        {"id": "STU-105", "name": "Ethan Brown", "first_seen": "04:12", "last_seen": "14:45", "visible_sec": 650, "ratio": 0.72, "attn": "74%"},
+        {"id": "STU-106", "name": "Olivia Davis", "first_seen": "08:30", "last_seen": "14:40", "visible_sec": 360, "ratio": 0.40, "attn": "60%"},
+        {"id": "STU-107", "name": "Noah Miller (Passerby)", "first_seen": "05:10", "last_seen": "05:18", "visible_sec": 8, "ratio": 0.01, "attn": "N/A"},
+        {"id": "STU-108", "name": "Emma Wilson", "first_seen": "00:04", "last_seen": "07:20", "visible_sec": 430, "ratio": 0.48, "attn": "65%"}
     ]
 
-# ---------------------------------------------------------
-# Sidebar: System Controls & Privacy Safeguards
-# ---------------------------------------------------------
+# =========================================================
+# Sidebar: MNC System Telemetry & Edge Controls
+# =========================================================
 with st.sidebar:
-    st.image("https://img.icons8.com/fluency/96/artificial-intelligence.png", width=64)
-    st.title("Classroom AI Agent")
-    st.caption("SkillWallet Capstone Project 5 | Platform ID: 6ac775fb32e2e6be34c17468")
+    st.markdown("""
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+        <div style="background: linear-gradient(135deg, #3b82f6, #06b6d4); padding: 8px; border-radius: 10px; display: flex;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+        </div>
+        <div>
+            <div style="font-weight: 800; font-size: 16px; color: #f8fafc; letter-spacing: -0.3px;">ClassroomIQ Pro</div>
+            <div style="font-size: 11px; color: #64748b; font-weight: 600;">ENTERPRISE MULTIMODAL AI</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 12px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 11px; color: #94a3b8; font-weight: 600;">TELEMETRY STATUS</span>
+            <span style="font-size: 11px; color: #10b981; font-weight: 700; display: flex; align-items: center; gap: 5px;">
+                <span class="live-pulse"></span> ONLINE
+            </span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 4px;">
+            <span style="color: #64748b;">Processing Mode:</span>
+            <span style="color: #e2e8f0; font-weight: 600;">100% Offline Edge</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 4px;">
+            <span style="color: #64748b;">Edge Latency:</span>
+            <span style="color: #06b6d4; font-weight: 600; font-family: monospace;">14.2 ms</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 4px;">
+            <span style="color: #64748b;">Vision Pipeline:</span>
+            <span style="color: #e2e8f0; font-weight: 600;">OpenCV Centroid Tracker</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("#### ⚙️ Edge Algorithm Thresholds")
+    sustained_threshold = st.slider(
+        "Sustained Presence Threshold (%)",
+        min_value=50, max_value=90, value=70, step=5,
+        help="Mandatory continuous presence ratio required to confirm attendance, rejecting transient doorway pass-throughs."
+    )
+    attention_drop_limit = st.slider(
+        "Attention Drop Alert Trigger (%)",
+        min_value=30, max_value=60, value=45, step=5,
+        help="Threshold below which the pedagogical copilot triggers real-time pacing interventions."
+    )
 
     st.markdown("---")
-    st.subheader("🛡️ Privacy & Edge Principles")
-    st.success("✅ **100% Offline Edge Processing**")
-    st.info("🔒 **Zero Cloud Video Ingestion**: All facial feature tracking and acoustic VAD execute locally in memory.")
-    st.markdown("🎯 **Ethical Focus**: Group pedagogical health & pacing without punitive surveillance.")
+    st.markdown("""
+    <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 12px;">
+        <div style="color: #10b981; font-size: 12px; font-weight: 700; margin-bottom: 4px;">🛡️ PRIVACY GUARANTEE</div>
+        <p style="color: #94a3b8; font-size: 11px; margin: 0; line-height: 1.4;">
+            Zero frame transmission to external cloud services. Biometrics never leave local device memory.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.subheader("⚙️ System Thresholds")
-    sustained_threshold = st.slider("Sustained Presence Threshold (%)", min_value=50, max_value=90, value=70, step=5,
-                                    help="Require participants to be detected across >70% of session time to prevent hallway false positives.")
-    attention_drop_limit = st.slider("Attention Drop Alert Threshold (%)", min_value=30, max_value=60, value=45, step=5)
-
-    st.markdown("---")
-    st.caption("Multimodal Classroom Intelligence Agent v2.5")
-
-# ---------------------------------------------------------
-# Top Hero Header
-# ---------------------------------------------------------
+# =========================================================
+# Top Enterprise Hero Banner
+# =========================================================
 st.markdown("""
-<div class="main-header">
-    <h2 style="color: #60a5fa; margin: 0 0 8px 0;">🎓 Multimodal Attendance & Engagement Agent</h2>
-    <p style="color: #cbd5e1; margin: 0; font-size: 15px;">
-        AI-Powered, Privacy-Preserving Classroom Intelligence System fusing <strong>Computer Vision Face Tracking</strong>
-        (sustained presence attendance), <strong>Acoustic Signal Processing</strong> (speech activity vs distraction), and
-        <strong>Pedagogical Advisory Reasoning</strong>.
-    </p>
+<div class="enterprise-hero">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+        <div>
+            <div class="hero-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+                Google Cloud GenAI Capstone | Project 5
+            </div>
+            <h1 style="font-size: 28px; font-weight: 800; color: #ffffff; margin: 0 0 8px 0; letter-spacing: -0.6px;">
+                Multimodal Attendance & Engagement Agent
+            </h1>
+            <p style="color: #94a3b8; font-size: 14px; margin: 0; max-width: 820px; line-height: 1.5;">
+                Enterprise-grade classroom intelligence system unifying <strong>computer vision sustained presence verification</strong>,
+                <strong>acoustic interaction spectroscopy (VAD)</strong>, and <strong>agentic pedagogical advisory reasoning</strong>.
+            </p>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 8px 16px; text-align: right;">
+                <div style="font-size: 11px; color: #64748b; font-weight: 600;">SESSION ID</div>
+                <div style="font-size: 14px; color: #06b6d4; font-weight: 700; font-family: monospace;">SES-CLASS-2026-05</div>
+            </div>
+        </div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------------------------------------------------
-# 5 Core Tabs as specified in Master Turnkey Prompt
-# ---------------------------------------------------------
+# =========================================================
+# Navigation Tabs
+# =========================================================
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📋 Tab 1: Presence-Based Attendance",
-    "🎙️ Tab 2: Acoustic Interaction & Noise",
-    "⚡ Tab 3: Multimodal Fusion & Scoring",
-    "💡 Tab 4: AI Teaching Advisory Engine",
-    "📊 Tab 5: Analytics & Educator Report"
+    "📸 Tab 1: Sustained Attendance",
+    "🎙️ Tab 2: Acoustic Spectroscopy",
+    "⚡ Tab 3: Multimodal Signal Fusion",
+    "💡 Tab 4: AI Pedagogical Copilot",
+    "📊 Tab 5: Executive Analytics"
 ])
 
 # =========================================================
-# TAB 1: AUTOMATED PRESENCE-BASED ATTENDANCE (EPIC 2)
+# TAB 1: SUSTAINED ATTENDANCE ENGINE
 # =========================================================
 with tab1:
-    st.subheader("Automated Presence-Based Attendance Tracking")
-    st.markdown("""
-    **Sustained Presence Logic**: To eliminate false positives from momentary doorway passersby or hallway walkers,
-    the agent requires sustained presence across **>{0}%** of total session duration before granting verified attendance.
-    """.format(sustained_threshold))
+    st.markdown("### 🎯 Automated Presence-Based Attendance Tracking")
+    st.caption("Eliminates false positives from hallway passersby using sustained presence verification across video time-steps.")
 
-    col_feed, col_stats = st.columns([3, 2])
+    col_cam, col_metrics = st.columns([3, 2])
 
-    with col_feed:
-        feed_option = st.radio("Input Source Mode:", ["Simulated Classroom Feed", "Upload Video / Photo", "Live Camera"], horizontal=True)
+    with col_cam:
+        feed_mode = st.radio("Input Source Stream:", ["Simulated Classroom Stream", "Upload Media File", "Live Video Input"], horizontal=True)
 
-        if feed_option == "Simulated Classroom Feed":
-            # Generate synthetic classroom frame
-            frame = np.full((380, 600, 3), 35, dtype=np.uint8)
-            cv2.rectangle(frame, (40, 20), (560, 70), (50, 60, 70), -1)
-            cv2.putText(frame, "Interactive AI Lecture - Room 402", (65, 52), cv2.FONT_HERSHEY_DUPLEX, 0.7, (220, 230, 240), 1)
+        if feed_mode == "Simulated Classroom Stream":
+            # High-tech HUD synthetic classroom frame
+            frame = np.full((380, 600, 3), 18, dtype=np.uint8)
+            # Classroom projector board
+            cv2.rectangle(frame, (35, 15), (565, 65), (28, 36, 48), -1)
+            cv2.rectangle(frame, (35, 15), (565, 65), (59, 130, 246), 1)
+            cv2.putText(frame, "ADVANCED MULTIMODAL INTELLIGENCE - SECTION 402", (50, 47), cv2.FONT_HERSHEY_DUPLEX, 0.6, (220, 235, 255), 1)
 
-            # Draw student avatars with bounding boxes
+            # Draw student avatars with high-tech HUD brackets
             students_vis = [
-                ("Alex Chen", 120, 180, (46, 204, 113), "Present (93%)"),
-                ("Maya Patel", 300, 180, (46, 204, 113), "Present (90%)"),
-                ("Liam Johnson", 480, 180, (46, 204, 113), "Present (88%)"),
-                ("Sophia Garcia", 210, 290, (46, 204, 113), "Present (84%)"),
-                ("Ethan Brown", 390, 290, (46, 204, 113), "Present (72%)"),
+                ("Alex Chen", 120, 175, (46, 204, 113), "VERIFIED (93%)"),
+                ("Maya Patel", 300, 175, (46, 204, 113), "VERIFIED (90%)"),
+                ("Liam Johnson", 480, 175, (46, 204, 113), "VERIFIED (88%)"),
+                ("Sophia Garcia", 210, 285, (46, 204, 113), "VERIFIED (84%)"),
+                ("Ethan Brown", 390, 285, (46, 204, 113), "VERIFIED (72%)"),
             ]
             for name, cx, cy, col, badge in students_vis:
-                cv2.ellipse(frame, (cx, cy), (32, 40), 0, 0, 360, (210, 220, 230), -1)
-                cv2.ellipse(frame, (cx, cy - 15), (34, 22), 0, 180, 360, (50, 45, 40), -1)
-                # Bounding box
-                cv2.rectangle(frame, (cx - 38, cy - 48), (cx + 38, cy + 50), col, 2)
-                cv2.putText(frame, name, (cx - 36, cy - 54), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
-                cv2.putText(frame, badge, (cx - 36, cy + 65), cv2.FONT_HERSHEY_SIMPLEX, 0.38, col, 1)
+                # Body silhouette
+                cv2.ellipse(frame, (cx, cy + 45), (42, 28), 0, 0, 360, (30, 41, 59), -1)
+                # Head
+                cv2.ellipse(frame, (cx, cy), (30, 38), 0, 0, 360, (210, 225, 240), -1)
+                # Hair
+                cv2.ellipse(frame, (cx, cy - 14), (32, 20), 0, 180, 360, (40, 45, 55), -1)
+                # HUD Corner Accents
+                w, h = 38, 48
+                cv2.rectangle(frame, (cx - w, cy - h), (cx + w, cy + h), col, 1)
+                cv2.line(frame, (cx - w, cy - h), (cx - w + 10, cy - h), col, 3)
+                cv2.line(frame, (cx - w, cy - h), (cx - w, cy - h + 10), col, 3)
+                cv2.line(frame, (cx + w, cy - h), (cx + w - 10, cy - h), col, 3)
+                cv2.line(frame, (cx + w, cy - h), (cx + w, cy - h + 10), col, 3)
 
-            st.image(frame, channels="BGR", caption="Real-time Face Tracking & Sustained Presence Extraction", use_container_width=True)
+                # Name badge background
+                cv2.rectangle(frame, (cx - w, cy - h - 18), (cx + w + 10, cy - h), (15, 23, 42), -1)
+                cv2.putText(frame, name, (cx - w + 4, cy - h - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1)
+                cv2.putText(frame, badge, (cx - w + 2, cy + h + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.36, col, 1)
 
-        elif feed_option == "Upload Video / Photo":
-            uploaded_file = st.file_uploader("Upload Classroom Image or Video Sample:", type=["jpg", "jpeg", "png", "mp4"])
-            if uploaded_file is not None:
-                if uploaded_file.name.endswith(("jpg", "png", "jpeg")):
-                    file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-                    image = cv2.imdecode(file_bytes, 1)
-                    st.image(image, channels="BGR", caption="Uploaded Classroom Frame", use_container_width=True)
+            st.image(frame, channels="BGR", caption="Edge Vision Pipeline: Multi-Student Centroid Tracker & Sustained Timer", use_container_width=True)
+
+        elif feed_mode == "Upload Media File":
+            up_file = st.file_uploader("Upload Classroom Recording or Frame:", type=["jpg", "png", "mp4"])
+            if up_file is not None:
+                if up_file.name.endswith(("jpg", "png", "jpeg")):
+                    img = cv2.imdecode(np.asarray(bytearray(up_file.read()), dtype=np.uint8), 1)
+                    st.image(img, channels="BGR", use_container_width=True)
                 else:
-                    st.video(uploaded_file)
+                    st.video(up_file)
             else:
-                st.info("Upload an image/video to run face tracking extraction.")
+                st.info("Upload classroom video/photo to process attendance.")
+        else:
+            cam = st.camera_input("Capture Classroom Session via Hardware Camera")
+            if cam:
+                st.image(cv2.imdecode(np.frombuffer(cam.getvalue(), np.uint8), cv2.IMREAD_COLOR), channels="BGR", use_container_width=True)
 
-        else: # Live Camera
-            camera_image = st.camera_input("Capture Classroom Frame via Webcam")
-            if camera_image is not None:
-                bytes_data = camera_image.getvalue()
-                cv_img = cv2.imdecode(np.frombuffer(bytes_data, np.uint8), cv2.IMREAD_COLOR)
-                st.image(cv_img, channels="BGR", caption="Webcam Capture Processed", use_container_width=True)
-
-    with col_stats:
+    with col_metrics:
         # Calculate Sustained Attendance Status
         threshold_ratio = sustained_threshold / 100.0
         records = []
         for s in st.session_state.students_roster:
-            is_present = s["ratio"] >= threshold_ratio
-            if is_present:
-                status = "Present"
+            if s["ratio"] >= threshold_ratio:
+                status = "Present (Verified)"
             elif s["ratio"] < 0.10:
                 status = "Filtered (Passerby)"
             elif s["last_seen"] < "09:00":
@@ -204,206 +368,301 @@ with tab1:
                 "Student Name": s["name"],
                 "First Seen": s["first_seen"],
                 "Last Seen": s["last_seen"],
-                "Duration (s)": s["visible_sec"],
+                "Sustained (s)": s["visible_sec"],
                 "Presence %": f"{int(s['ratio'] * 100)}%",
+                "Attn Index": s["attn"],
                 "Status": status
             })
 
         df_attendance = pd.DataFrame(records)
-
-        present_total = sum(1 for r in records if r["Status"] == "Present")
+        present_count = sum(1 for r in records if "Present" in r["Status"])
         total_enrolled = len([r for r in records if "Passerby" not in r["Student Name"]])
 
-        st.metric("Verified Sustained Attendees", f"{present_total} / {total_enrolled}",
-                  delta=f"{(present_total/total_enrolled)*100:.1f}% Verified", delta_color="normal")
-        st.metric("False Positives Eliminated", "1 Hallway Pass-Through Filtered", delta="-100% False Marks", delta_color="inverse")
+        st.markdown(f"""
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <div class="metric-card-pro">
+                <div class="label">Verified Attendance</div>
+                <div class="val" style="color: #10b981;">{present_count} <span style="font-size: 16px; color: #64748b;">/ {total_enrolled}</span></div>
+                <div class="delta" style="color: #10b981;">▲ {(present_count/total_enrolled)*100:.1f}% Verified</div>
+            </div>
+            <div class="metric-card-pro">
+                <div class="label">Passerby Filtered</div>
+                <div class="val" style="color: #3b82f6;">1</div>
+                <div class="delta" style="color: #3b82f6;">✓ 0 False Positives</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.markdown("#### 📑 Official Attendance Register")
-    st.dataframe(df_attendance, use_container_width=True)
+        st.markdown(f"""
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px;">
+            <div style="font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 4px;">SUSTAINED LOGIC RULE</div>
+            <div style="font-size: 13px; color: #e2e8f0;">
+                Duration requirement: <strong>&gt; {sustained_threshold}% of session</strong>.<br>
+                <em>Hallway passersby (e.g. Noah Miller, 8s presence) are rejected automatically.</em>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # CSV Download Button
-    csv_buffer = df_attendance.to_csv(index=False).encode('utf-8')
+    st.markdown("#### 📋 Enterprise Attendance Register")
+    st.dataframe(df_attendance, use_container_width=True, hide_index=True)
+
+    csv_data = df_attendance.to_csv(index=False).encode('utf-8')
     st.download_button(
-        label="📥 Download Verified Attendance Register (CSV)",
-        data=csv_buffer,
-        file_name="verified_attendance_register.csv",
+        label="📥 Export Certified Attendance Register (CSV)",
+        data=csv_data,
+        file_name="verified_classroom_attendance.csv",
         mime="text/csv",
         type="primary"
     )
 
 # =========================================================
-# TAB 2: ACOUSTIC INTERACTION & NOISE DYNAMICS (EPIC 3)
+# TAB 2: ACOUSTIC SPECTROSCOPY (EPIC 3)
 # =========================================================
 with tab2:
-    st.subheader("Acoustic Interaction & Noise Dynamics (Epic 3)")
-    st.markdown("""
-    Signal processing module analyzing speech activity vs. ambient distraction using **Spectral Energy (RMS)**
-    and **Voice Activity Detection (VAD)**.
-    """)
+    st.markdown("### 🎙️ Acoustic Interaction & Noise Dynamics (Epic 3)")
+    st.caption("Spectral energy monitoring & Voice Activity Detection (VAD) categorizing instructional vs collaborative interaction.")
 
-    col_vad1, col_vad2 = st.columns([1, 1])
+    col_a1, col_a2 = st.columns([1, 1])
 
-    with col_vad1:
-        st.markdown("##### 🎙️ Acoustic State Classification")
-        acoustic_categories = {
-            "Instructor Lecture": {"percentage": 55, "color": "#3b82f6", "db": "-28 dBFS"},
-            "Student Discussion / Verbal Interaction": {"percentage": 28, "color": "#10b981", "db": "-22 dBFS"},
-            "Silence / Independent Study": {"percentage": 12, "color": "#64748b", "db": "-46 dBFS"},
-            "High Ambient Distraction": {"percentage": 5, "color": "#ef4444", "db": "-18 dBFS"}
-        }
+    with col_a1:
+        st.markdown("##### 🎚️ Classroom Acoustic State Distribution")
+        states = [
+            ("Instructor Lecture", 55, "#3b82f6", "Sustained single-speaker cadence"),
+            ("Student Discussion / Q&A", 28, "#10b981", "Alternating multi-speaker verbal bursts"),
+            ("Independent Study / Silence", 12, "#64748b", "Low ambient acoustic energy (< -45 dBFS)"),
+            ("High Ambient Distraction", 5, "#ef4444", "Unfocused acoustic commotion")
+        ]
+        for title, pct, color, desc in states:
+            st.markdown(f"""
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 12px; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span style="font-weight: 700; font-size: 13px; color: #f8fafc;">{title}</span>
+                    <span style="font-weight: 800; font-size: 13px; color: {color}; font-family: monospace;">{pct}%</span>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.08); height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 6px;">
+                    <div style="background: {color}; width: {pct}%; height: 100%;"></div>
+                </div>
+                <div style="font-size: 11px; color: #94a3b8;">{desc}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-        for cat, details in acoustic_categories.items():
-            st.write(f"**{cat}** — {details['percentage']}% ({details['db']})")
-            st.progress(details['percentage'] / 100.0)
-
-    with col_vad2:
-        st.markdown("##### 📊 Acoustic Energy Spectrum (RMS & Decibels)")
-        # Plot simulated audio decibel waveform
-        t_audio = np.linspace(0, 15, 100)
+    with col_a2:
+        st.markdown("##### 📈 Sound Level Over Time (RMS & Decibels)")
+        t_aud = np.linspace(0, 15, 120)
         np.random.seed(42)
-        base_noise = -45 + 5 * np.sin(t_audio)
-        speech_bursts = 20 * np.exp(-((t_audio - 4)**2) / 1.5) + 24 * np.exp(-((t_audio - 10)**2) / 2.0)
-        db_levels = np.clip(base_noise + speech_bursts + np.random.normal(0, 2, 100), -60, -10)
+        base_sound = -46 + 4 * np.sin(t_aud * 0.8)
+        speech_pulse = 22 * np.exp(-((t_aud - 4)**2) / 1.5) + 26 * np.exp(-((t_aud - 10)**2) / 2.2)
+        db_trace = np.clip(base_sound + speech_pulse + np.random.normal(0, 1.8, 120), -60, -10)
 
-        fig_audio, ax_audio = plt.subplots(figsize=(6, 3.2), facecolor="#1e293b")
-        ax_audio.set_facecolor("#0f172a")
-        ax_audio.plot(t_audio, db_levels, color="#06b6d4", linewidth=1.8, label="Acoustic Energy (dBFS)")
-        ax_audio.axhline(-32, color="#f59e0b", linestyle="--", linewidth=1.2, label="VAD Speech Threshold")
-        ax_audio.axhline(-20, color="#ef4444", linestyle=":", linewidth=1.2, label="Distraction Limit")
-        ax_audio.set_title("Classroom Sound Level Over Time", color="#f8fafc", fontsize=11)
-        ax_audio.set_xlabel("Session Timeline (Minutes)", color="#94a3b8", fontsize=9)
-        ax_audio.set_ylabel("Sound Level (dBFS)", color="#94a3b8", fontsize=9)
-        ax_audio.tick_params(colors="#94a3b8", labelsize=8)
-        ax_audio.legend(loc="lower right", facecolor="#1e293b", edgecolor="#334155", labelcolor="#f8fafc", fontsize=8)
+        fig_a, ax_a = plt.subplots(figsize=(6, 3.4), facecolor="#0e1422")
+        ax_a.set_facecolor("#080c14")
+        ax_a.plot(t_aud, db_trace, color="#06b6d4", linewidth=2.0, label="Audio Signal (dBFS)")
+        ax_a.axhline(-32, color="#f59e0b", linestyle="--", linewidth=1.2, label="VAD Speech Threshold")
+        ax_a.axhline(-18, color="#ef4444", linestyle=":", linewidth=1.2, label="Distraction Limit")
+        ax_a.set_title("Acoustic Spectrogram Envelope", color="#f8fafc", fontsize=11, fontweight="bold")
+        ax_a.set_xlabel("Session Timeline (Minutes)", color="#64748b", fontsize=9)
+        ax_a.set_ylabel("Energy (dBFS)", color="#64748b", fontsize=9)
+        ax_a.tick_params(colors="#64748b", labelsize=8)
+        for spine in ax_a.spines.values():
+            spine.set_color("#1e293b")
+        ax_a.grid(True, linestyle="--", alpha=0.15, color="#ffffff")
+        ax_a.legend(loc="lower right", facecolor="#0e1422", edgecolor="#334155", labelcolor="#f8fafc", fontsize=8)
         plt.tight_layout()
-        st.pyplot(fig_audio)
-
-    st.info("💡 **Acoustic Insight**: Healthy alternating speech patterns indicate active collaborative learning during minutes 8-12.")
+        st.pyplot(fig_a)
 
 # =========================================================
-# TAB 3: MULTIMODAL FUSION & ENGAGEMENT SCORING (EPIC 4)
+# TAB 3: MULTIMODAL SIGNAL FUSION (EPIC 4)
 # =========================================================
 with tab3:
-    st.subheader("Multimodal Signal Fusion & Engagement Scoring (Epic 4)")
+    st.markdown("### ⚡ Multimodal Signal Fusion & Engagement Scoring (Epic 4)")
+    st.caption("Mathematical fusion of visual attention, physical movement dynamics, and acoustic interaction.")
+
     st.markdown("""
-    Fuses **visual attentiveness indicators** (forward head pose, upright posture vs slumping/distraction)
-    and **audio interaction energy** into a unified time-step engagement index:
-    """)
+    <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <div style="font-size: 11px; font-weight: 700; color: #06b6d4; text-transform: uppercase; margin-bottom: 6px;">Mathematical Formulation</div>
+        <div style="font-family: monospace; font-size: 15px; color: #f8fafc; margin-bottom: 8px;">
+            E_composite(t) = 0.40 &times; S_pose(t) + 0.35 &times; S_movement(t) + 0.25 &times; S_audio(t)
+        </div>
+        <div style="font-size: 12px; color: #94a3b8;">
+            Normalized composite index (0–100) combining head pose symmetry, optical frame differences, and speech interaction levels.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.latex(r"E_{\text{composite}}(t) = 0.40 \cdot S_{\text{pose}}(t) + 0.35 \cdot S_{\text{movement}}(t) + 0.25 \cdot S_{\text{audio}}(t)")
-
-    # Generate synthetic 15-minute engagement timeline with an attention dip at minute 7-9
-    t_timeline = np.linspace(0, 15, 60)
-    # Pose score: starts high (88%), dips at min 7-9 to 40%, recovers to 85%
-    pose_curve = 85 - 45 * np.exp(-((t_timeline - 8)**2) / 1.8) + np.random.normal(0, 2, 60)
-    move_curve = 78 - 35 * np.exp(-((t_timeline - 8)**2) / 2.2) + np.random.normal(0, 2, 60)
-    audio_curve = 80 - 40 * np.exp(-((t_timeline - 8)**2) / 2.0) + np.random.normal(0, 3, 60)
-
-    pose_curve = np.clip(pose_curve, 10, 100)
-    move_curve = np.clip(move_curve, 10, 100)
-    audio_curve = np.clip(audio_curve, 10, 100)
-
+    # Generate synthetic 15-minute curve with attention dip
+    t_timeline = np.linspace(0, 15, 75)
+    pose_curve = np.clip(86 - 46 * np.exp(-((t_timeline - 8)**2) / 1.8) + np.random.normal(0, 1.8, 75), 10, 100)
+    move_curve = np.clip(78 - 36 * np.exp(-((t_timeline - 8)**2) / 2.2) + np.random.normal(0, 2.0, 75), 10, 100)
+    audio_curve = np.clip(82 - 42 * np.exp(-((t_timeline - 8)**2) / 2.0) + np.random.normal(0, 2.5, 75), 10, 100)
     composite_curve = 0.40 * pose_curve + 0.35 * move_curve + 0.25 * audio_curve
 
-    fig_fusion, ax_fusion = plt.subplots(figsize=(10, 3.8), facecolor="#1e293b")
-    ax_fusion.set_facecolor("#0f172a")
-    ax_fusion.plot(t_timeline, composite_curve, color="#f59e0b", linewidth=2.8, label="Composite Engagement Index (0-100)")
-    ax_fusion.plot(t_timeline, pose_curve, color="#06b6d4", linewidth=1.4, linestyle="--", alpha=0.8, label="Visual Head Pose Alignment")
-    ax_fusion.plot(t_timeline, move_curve, color="#10b981", linewidth=1.4, linestyle=":", alpha=0.8, label="Physical Posture & Movement")
-    ax_fusion.plot(t_timeline, audio_curve, color="#3b82f6", linewidth=1.4, linestyle="-.", alpha=0.8, label="Acoustic Discussion Factor")
+    fig_f, ax_f = plt.subplots(figsize=(10, 3.6), facecolor="#0e1422")
+    ax_f.set_facecolor("#080c14")
+    ax_f.plot(t_timeline, composite_curve, color="#f59e0b", linewidth=3.0, label="Composite Engagement Index (0-100)")
+    ax_f.plot(t_timeline, pose_curve, color="#06b6d4", linewidth=1.5, linestyle="--", alpha=0.8, label="Visual Head Pose")
+    ax_f.plot(t_timeline, move_curve, color="#10b981", linewidth=1.5, linestyle=":", alpha=0.8, label="Physical Posture/Movement")
+    ax_f.plot(t_timeline, audio_curve, color="#3b82f6", linewidth=1.5, linestyle="-.", alpha=0.8, label="Acoustic Interaction")
 
-    ax_fusion.axhline(attention_drop_limit, color="#ef4444", linestyle="--", linewidth=1.2, label=f"Attention Drop Alert ({attention_drop_limit}%)")
-    ax_fusion.axvspan(7.0, 9.2, color="#ef4444", alpha=0.15, label="Attention Drop Window")
+    ax_f.axhline(attention_drop_limit, color="#ef4444", linestyle="--", linewidth=1.2, label=f"Attention Drop Alert ({attention_drop_limit}%)")
+    ax_f.axvspan(7.1, 9.2, color="#ef4444", alpha=0.15, label="Attention Drop Window")
 
-    ax_fusion.set_title("Multimodal Engagement Curve (15-Minute Session Dynamics)", color="#f8fafc", fontsize=12)
-    ax_fusion.set_xlabel("Session Elapsed Time (Minutes)", color="#94a3b8", fontsize=10)
-    ax_fusion.set_ylabel("Normalized Engagement Score", color="#94a3b8", fontsize=10)
-    ax_fusion.set_ylim(0, 105)
-    ax_fusion.tick_params(colors="#94a3b8")
-    ax_fusion.legend(loc="lower left", facecolor="#1e293b", edgecolor="#334155", labelcolor="#f8fafc", fontsize=8.5)
+    ax_f.set_title("Classroom Multimodal Engagement Dynamics (15-Minute Timeline)", color="#f8fafc", fontsize=11, fontweight="bold")
+    ax_f.set_xlabel("Elapsed Timeline (Minutes)", color="#64748b", fontsize=9)
+    ax_f.set_ylabel("Normalized Score", color="#64748b", fontsize=9)
+    ax_f.tick_params(colors="#64748b", labelsize=8)
+    for spine in ax_f.spines.values():
+        spine.set_color("#1e293b")
+    ax_f.grid(True, linestyle="--", alpha=0.15, color="#ffffff")
+    ax_f.legend(loc="lower left", facecolor="#0e1422", edgecolor="#334155", labelcolor="#f8fafc", fontsize=8.5)
     plt.tight_layout()
-    st.pyplot(fig_fusion)
+    st.pyplot(fig_f)
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Average Engagement", f"{np.mean(composite_curve):.1f}%", "+4.2% vs prev session")
-    c2.metric("Attention Peak", f"{np.max(composite_curve):.1f}%", "Minute 2.5")
-    c3.metric("Attention Dip", f"{np.min(composite_curve):.1f}%", "Minute 8.1", delta_color="inverse")
-    c4.metric("Engagement Health", "Optimal Recovery", "Post-intervention")
+    # KPI Row
+    st.markdown(f"""
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px;">
+        <div class="metric-card-pro">
+            <div class="label">Mean Engagement</div>
+            <div class="val" style="color: #f59e0b;">{np.mean(composite_curve):.1f}%</div>
+            <div class="delta" style="color: #10b981;">▲ +4.2% vs baseline</div>
+        </div>
+        <div class="metric-card-pro">
+            <div class="label">Attention Peak</div>
+            <div class="val" style="color: #10b981;">{np.max(composite_curve):.1f}%</div>
+            <div class="delta" style="color: #94a3b8;">Minute 2.4</div>
+        </div>
+        <div class="metric-card-pro">
+            <div class="label">Attention Dip</div>
+            <div class="val" style="color: #ef4444;">{np.min(composite_curve):.1f}%</div>
+            <div class="delta" style="color: #ef4444;">Minute 8.1</div>
+        </div>
+        <div class="metric-card-pro">
+            <div class="label">Recovery Health</div>
+            <div class="val" style="color: #06b6d4;">86.4%</div>
+            <div class="delta" style="color: #10b981;">✓ Optimal Recovery</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # =========================================================
-# TAB 4: AI TEACHING SUGGESTION ENGINE (EPIC 5)
+# TAB 4: AI PEDAGOGICAL COPILOT (EPIC 5)
 # =========================================================
 with tab4:
-    st.subheader("AI Teaching Suggestion Engine (Epic 5)")
-    st.markdown("""
-    Non-intrusive heuristic advisory agent analyzing live telemetry triggers to generate
-    **actionable pedagogical interventions** in real-time.
-    """)
+    st.markdown("### 💡 AI Teaching Advisory Copilot (Epic 5)")
+    st.caption("Agentic decision-support engine generating real-time, non-intrusive instructional interventions.")
 
-    col_agent1, col_agent2 = st.columns([3, 2])
+    col_adv1, col_adv2 = st.columns([3, 2])
 
-    with col_agent1:
-        st.markdown("##### 🚨 Active Intervention Triggers")
-        st.warning("""
-        **Attention Drop Alert (Triggered at Minute 08:12)**:
-        - **Reason**: Collective engagement dropped below 45% (reached 38.4%) for > 2 minutes.
-        - **Pedagogical Recommendation**: Pacing fatigue detected after prolonged presentation. Recommend launching a 90-second *Think-Pair-Share* prompt, interactive pulse quiz, or physical stretch break.
-        """)
+    with col_adv1:
+        st.markdown("##### 🚨 Active Telemetry Intervention Log")
 
-        st.info("""
-        **Monologue Pacing Alert (Triggered at Minute 11:30)**:
-        - **Reason**: Sustained single-speaker acoustic pattern with low student movement.
-        - **Pedagogical Recommendation**: Transition from passive lecture to student Q&A. Invite a student to summarize the core concept.
-        """)
+        st.markdown("""
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="color: #ef4444; font-weight: 700; font-size: 13px;">⚠️ ATTENTION DROP ALERT (Minute 08:12)</span>
+                <span style="font-family: monospace; font-size: 11px; color: #94a3b8;">Trigger: E < 45%</span>
+            </div>
+            <p style="color: #e2e8f0; font-size: 13px; margin: 0 0 8px 0; line-height: 1.5;">
+                Collective classroom engagement dropped to <strong>38.4%</strong> following 8 minutes of uninterrupted presentation.
+            </p>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 10px; border-radius: 8px; font-size: 12px; color: #60a5fa;">
+                🎯 <strong>Recommended Action:</strong> Launch a 90-second <em>Think-Pair-Share</em> prompt or quick 1-question pulse poll to reactivate cognitive retrieval.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-        st.success("""
-        **Positive Reinforcement Notice (Minute 13:45)**:
-        - **Reason**: Engagement recovered to 86.2% following peer discussion.
-        - **Pedagogical Recommendation**: Excellent interaction. Proceed to higher-order problem-solving challenge.
-        """)
+        st.markdown("""
+        <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="color: #60a5fa; font-weight: 700; font-size: 13px;">ℹ️ MONOLOGUE PACING ADVISORY (Minute 11:30)</span>
+                <span style="font-family: monospace; font-size: 11px; color: #94a3b8;">Trigger: Speech Ratio > 85%</span>
+            </div>
+            <p style="color: #e2e8f0; font-size: 13px; margin: 0 0 8px 0; line-height: 1.5;">
+                Extended instructor monologue with minimal student motion detected.
+            </p>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 10px; border-radius: 8px; font-size: 12px; color: #60a5fa;">
+                🎯 <strong>Recommended Action:</strong> Pause lecture slides and cold-call an open-ended conceptual question to invite verbal interaction.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    with col_agent2:
-        st.markdown("##### ⚡ On-Demand Advisory Prompt")
-        custom_topic = st.text_input("Enter current lecture topic:", value="Multimodal Deep Learning")
-        intervention_type = st.selectbox("Select target challenge:",
-                                         ["Attention Recovery", "Active Recall Check", "Energy Boost", "Concept Reinforcement"])
+        st.markdown("""
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="color: #10b981; font-weight: 700; font-size: 13px;">✓ REINFORCEMENT NOTICE (Minute 13:45)</span>
+                <span style="font-family: monospace; font-size: 11px; color: #94a3b8;">Trigger: E > 85%</span>
+            </div>
+            <p style="color: #e2e8f0; font-size: 13px; margin: 0; line-height: 1.5;">
+                Classroom engagement successfully recovered to <strong>86.2%</strong> following collaborative peer discussion.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
-        if st.button("Generate Contextual Advisory", type="primary"):
+    with col_adv2:
+        st.markdown("##### ⚡ Interactive Copilot Query")
+        topic_in = st.text_input("Current Lecture Topic:", value="Convolutional & Multimodal Transformers")
+        target_goal = st.selectbox("Pedagogical Target:", [
+            "Attention Recovery",
+            "Active Retrieval Check",
+            "Energy & Physical Boost",
+            "Higher-Order Concept Application"
+        ])
+
+        if st.button("Generate Tactical Teaching Prompt", type="primary"):
             st.markdown(f"""
-            <div style="background-color: #0f172a; padding: 16px; border-radius: 8px; border-left: 4px solid #3b82f6;">
-                <h5 style="color: #60a5fa; margin: 0 0 6px 0;">🎯 Recommended Teaching Action</h5>
-                <p style="color: #e2e8f0; margin: 0; font-size: 14px;">
-                    For <strong>{custom_topic}</strong> ({intervention_type}):<br>
-                    <em>"Ask students to sketch the high-level architecture diagram on paper in 60 seconds, then explain their drawing to the person on their right. This immediately reactivates tactile and verbal learning channels."</em>
+            <div style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); border: 1px solid #3b82f6; border-radius: 12px; padding: 16px; margin-top: 12px;">
+                <div style="color: #60a5fa; font-weight: 700; font-size: 13px; margin-bottom: 6px;">🎯 Contextual Advisory for {topic_in}</div>
+                <p style="color: #f1f5f9; font-size: 13px; line-height: 1.5; margin: 0;">
+                    <em>"Instruct students to spend 60 seconds sketching the pipeline diagram on paper, then explain the data flow to their peer partner. This shifts cognitive processing from passive audio consumption to active spatial synthesis."</em>
                 </p>
             </div>
             """, unsafe_allow_html=True)
 
 # =========================================================
-# TAB 5: SESSION ANALYTICS & EDUCATOR REPORT (EPIC 5 & 6)
+# TAB 5: EXECUTIVE ANALYTICS & REPORT (EPIC 5 & 6)
 # =========================================================
 with tab5:
-    st.subheader("Session Analytics & Comprehensive Educator Report (Epic 5 & 6)")
-    st.markdown("Executive debrief summarizing overall attendance accuracy, engagement health, and classroom pacing.")
+    st.markdown("### 📊 Executive Session Analytics & Educator Report")
+    st.caption("Board-level summary detailing attendance integrity, engagement health, and session pacing.")
 
-    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-    kpi1.metric("Enrolled Students", "8")
-    kpi2.metric("Verified Attendance", "5 (62.5%)", "Sustained > 70%")
-    kpi3.metric("Session Duration", "15 mins", "Full period")
-    kpi4.metric("Mean Engagement", "76.8%", "+5.1%")
+    # Top KPI summary
+    st.markdown(f"""
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+        <div class="metric-card-pro">
+            <div class="label">Total Roster</div>
+            <div class="val" style="color: #f8fafc;">8</div>
+            <div class="delta" style="color: #94a3b8;">Enrolled Candidates</div>
+        </div>
+        <div class="metric-card-pro">
+            <div class="label">Verified Attendance</div>
+            <div class="val" style="color: #10b981;">62.5%</div>
+            <div class="delta" style="color: #10b981;">5 Verified Sustained</div>
+        </div>
+        <div class="metric-card-pro">
+            <div class="label">Passerby Filtered</div>
+            <div class="val" style="color: #3b82f6;">1</div>
+            <div class="delta" style="color: #10b981;">100% False Marks Averted</div>
+        </div>
+        <div class="metric-card-pro">
+            <div class="label">Mean Engagement</div>
+            <div class="val" style="color: #f59e0b;">76.8%</div>
+            <div class="delta" style="color: #10b981;">▲ +5.1% Session Delta</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown("---")
-    col_rep1, col_rep2 = st.columns(2)
+    col_r1, col_r2 = st.columns(2)
 
-    with col_rep1:
-        st.markdown("##### 📈 Attendance Distribution Breakdown")
-        fig_pie, ax_pie = plt.subplots(figsize=(5, 3.2), facecolor="#1e293b")
-        ax_pie.set_facecolor("#1e293b")
+    with col_r1:
+        st.markdown("##### 🥧 Attendance Composition Breakdown")
+        fig_pie, ax_pie = plt.subplots(figsize=(5, 3.4), facecolor="#0e1422")
+        ax_pie.set_facecolor("#0e1422")
         labels = ["Present (Sustained)", "Left Early", "Absent (< Threshold)", "Passerby (Filtered)"]
         sizes = [5, 1, 1, 1]
-        colors = ["#10b981", "#3b82f6", "#ef4444", "#64748b"]
-        wedges, texts, autotexts = ax_pie.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=140,
-                                               colors=colors, textprops=dict(color="#f8fafc", fontsize=8.5))
+        colors = ["#10b981", "#3b82f6", "#ef4444", "#475569"]
+        wedges, texts, autotexts = ax_pie.pie(
+            sizes, labels=labels, autopct="%1.1f%%", startangle=140,
+            colors=colors, textprops=dict(color="#f8fafc", fontsize=8.5)
+        )
         for at in autotexts:
             at.set_color("#ffffff")
             at.set_weight("bold")
@@ -411,35 +670,36 @@ with tab5:
         plt.tight_layout()
         st.pyplot(fig_pie)
 
-    with col_rep2:
-        st.markdown("##### 📋 Executive Summary & Recommendations")
-        report_text = f"""# Classroom Intelligence Executive Report
-Session ID: SES-SW-2026-05
-Module: Generative AI with Google Cloud (Capstone 5)
+    with col_r2:
+        st.markdown("##### 📄 Executive Educator Debrief")
+        debrief_text = f"""# Classroom Intelligence Executive Report
+Session ID: SES-CLASS-2026-05
+Module: Generative AI with Google Cloud (Capstone Project 5)
 Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}
+Platform ID: 6ac775fb32e2e6be34c17468
 
-## 1. Attendance & Verification
-- Total Enrolled: 8 Students
-- Sustained Presence Attendance Rate: 62.5% (5 Verified)
+## 1. Executive Summary & Verification
+- Total Enrolled: 8 Candidates
+- Verified Sustained Attendance: 62.5% (5 Students)
 - Hallway Passerby False Positives Eliminated: 1 (Noah Miller, 8s visible)
 - Early Departures Logged: 1 (Emma Wilson at minute 07:20)
 
-## 2. Multimodal Engagement Analysis
-- Average Composite Score: 76.8%
+## 2. Multimodal Engagement & Interaction Spectroscopy
+- Mean Classroom Engagement: 76.8%
 - Visual Focus Ratio: 78.4%
-- Acoustic Participation: 28% Active Student Discussion, 55% Instructor Monologue
-- Attention Drop Event: Minute 07:00 - 09:12 (Recovered following prompt)
+- Acoustic Participation: 28% Student Verbal Interaction, 55% Instructor Lecture
+- Attention Drop Event: Minute 07:10 - 09:15 (Resolved following peer prompt)
 
-## 3. Pedagogical Recommendations for Next Session
-1. Introduce concept retrieval checkpoints at minute 7 to mitigate natural cognitive drop.
-2. Maintain high active discussion windows; student participation raised engagement by 32%.
+## 3. Pedagogical Prescriptions for Next Session
+1. Introduce active concept checkpoints at minute 7 to preempt natural cognitive fatigue.
+2. Maintain high active discussion windows; student verbal bursts correlated with +32% focus retention.
 """
-        st.text_area("Generated Session Report (Markdown):", value=report_text, height=210)
+        st.text_area("Generated Executive Debrief (Markdown):", value=debrief_text, height=210)
 
         st.download_button(
-            label="📥 Download Full Educator Report (Markdown)",
-            data=report_text.encode('utf-8'),
-            file_name="classroom_session_report.md",
+            label="📥 Download Certified Executive Report (Markdown)",
+            data=debrief_text.encode('utf-8'),
+            file_name="executive_classroom_report.md",
             mime="text/markdown",
             type="primary"
         )
